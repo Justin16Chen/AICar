@@ -1,0 +1,7 @@
+{
+    "type": "PNG",
+    "tileSize": 8, "patternTileSize": 4,
+    "spawnCol": 200, "spawnRow": 50, "spawnAngle": 0,
+    "roadThreshold": 50,
+    "map": "/world/easyMap.png"
+}
