@@ -41,11 +41,11 @@ public class DataRecorder {
     // append dataPoints to end of CSV file
     public void saveToFile(String folderPath, String fileName) {
         try {
-            // Create directory if it doesn't exist
             Path path = Paths.get(folderPath, fileName);
             Files.write(path, dataPoints, StandardOpenOption.APPEND);
         } catch (IOException e) {
             e.printStackTrace();
+            throw new IllegalArgumentException(fileName + " at " + folderPath + " does not exist");
         }
         dataPoints.clear();
     }

@@ -39,6 +39,7 @@ public class ModelLoader {
 
     private Predictor<double[], double[]> createPredictor(String folderPath, String modelFileName) {
         InputTranslator translator = new InputTranslator();
+        translator.setModelScalars(new ModelScalars(folderPath + "/" + modelFileName + "_scalars.json"));
 
         Criteria<double[], double[]> criteria = null;
         try {

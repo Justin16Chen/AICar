@@ -19,7 +19,7 @@ import aicar.utils.tween.Timer;
 
 public class Controller {
     private static final String WORLD_MAP_FILEPATH = "/world/mediumMapMedRes.json",
-        MODEL_FOLDER_PATH = "/models", MODEL_FILE_NAME = "model_v2";
+        MODEL_FOLDER_PATH = "/models/simple", MODEL_FILE_NAME = "model_v2";
     private static final String TOGGLE_CONTROL_KEY = "C";
 
     public enum ControlMode {
@@ -35,6 +35,7 @@ public class Controller {
     private Car car;
     private ModelLoader modelLoader;
     private DataRecordManager dataRecordManager;
+    private TextSprite newSpawnSprite;
 
     public Controller(ControlMode controlMode, Keyboard keyboard, Mouse mouse, int screenWidth, int screenHeight) {
         this.controlMode = controlMode;
@@ -68,6 +69,9 @@ public class Controller {
                 g.drawString(modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading Model...", left + 5, 60);
             }
         };
+
+        newSpawnSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "Spawn set at (x, y)", "ui");
+        newSpawnSprite.setVisible(false);
     }
 
     public ControlMode getControlMode() {
@@ -81,17 +85,31 @@ public class Controller {
         return camera;
     }
 
+    // public void loadModel(String folder, String name) {
+    //     modelLoader.loadModelAsync(folder, name);
+    // }
+
     public void update() {
         if (keyboard.keyClicked(TOGGLE_CONTROL_KEY)) {
-            System.out.println(controlMode);
             controlMode = controlMode == ControlMode.HUMAN ? ControlMode.MODEL : ControlMode.HUMAN;
             if (controlMode == ControlMode.MODEL && !modelLoader.isModelLoaded()) {
                 controlMode = ControlMode.HUMAN;
                 TextSprite modelLoadSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "MODEL IS NOT LOADED", "ui");
                 Timer.createSetTimer("hide model load sprite", modelLoadSprite, 3, "visible", false);
             }
-            System.out.println(controlMode);
+            else if (controlMode == ControlMode.HUMAN)
+                car.stop();
         }
+
+        if (mouse.clicked() && keyboard.keyDown("Ctrl")) {
+            int x = (int) camera.screenXToWorld(mouse.getX());
+            int y = (int) camera.screenYToWorld(mouse.getY());
+            newSpawnSprite.setText("Spawn set at (" + x + ", " + y + ")");
+            newSpawnSprite.setVisible(true);
+            Timer.createSetTimer("hide new spawn sprite", newSpawnSprite, 1.5, "visible", false);
+            world.setSpawnPos(new Vec(x, y), Math.atan2(car.getCenterY() - world.getWorldHeight() * 0.5, car.getCenterX() - world.getWorldWidth() * 0.5) - Math.PI * 0.5);
+        }
+        
         
         double[] modelInputs = createModelInputs(car.getDistances(), car.getVelocity());
         switch (controlMode) {

@@ -13,7 +13,7 @@ public class Car extends Sprite {
     private static final String CAR_IMAGE_PATH = "/textures/car.png";
     private static final double LINEAR_ACCEL_SCALAR = 0.15, PREV_LINEAR_ACCEL_SCALAR = 0.85, MAX_SPEED = 6, 
         ANGULAR_ACCEL_SCALAR = 0.002, PREV_ANGULAR_ACCEL_SCALAR = 0.8, MAX_ANGULAR_SPEED = 0.03;
-    public static final int NUM_SENSORS = 5, MAX_SENSOR_DIST = 3000;
+    public static final int NUM_SENSORS = 5, MAX_SENSOR_DIST = 2500;
     private static final double SENSOR_ANGLE_SPREAD = Math.toRadians(25);
     private World world;
     private Vec pos;
@@ -133,6 +133,7 @@ public class Car extends Sprite {
     public boolean updateCollisions() {
         if (getTile() == World.TileType.WALL || getTile() == World.TileType.OUT_OF_BOUNDS) {
             respawn(world.getSpawnPosition(), world.getSpawnAngle());
+            stop();
             updateSprites();
             return true;
         }
@@ -143,15 +144,18 @@ public class Car extends Sprite {
         return world.getTileType((int) (pos.y() / world.getTileSize()), (int) (pos.x() / world.getTileSize()));
     }
 
-    private void respawn(Vec respawnPosition, double respawnAngle) {
-        pos = respawnPosition;
-        angle = respawnAngle;
-        setAngle(respawnAngle);
+    public void stop() {
         linearVel = 0;
         angularVel = 0;
         linearAccel = 0;
         angularAccel = 0;
         angularVel = 0;
+    }
+
+    private void respawn(Vec respawnPosition, double respawnAngle) {
+        pos = respawnPosition;
+        angle = respawnAngle;
+        setAngle(respawnAngle);
     }
 
     public void updateSprites() {

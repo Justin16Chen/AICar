@@ -13,7 +13,7 @@ import java.awt.Graphics2D;
 
 public class DataRecordManager {
     private static final DecimalFormat DATE_FORMAT = new DecimalFormat("00");
-    private static final String DATA_FOLDER_FILEPATH = "app/output/humanResponse/mediumMap", HUMAN_DATA_FILEPATH = "medResThickTrack.csv", MODEL_DATA_FILEPATH = "modelResponse.csv";
+    private static final String DATA_FOLDER_FILEPATH = "app/output/humanResponse/mediumMap", HUMAN_DATA_FILEPATH = "thirdAttemptFixed.csv", MODEL_DATA_FILEPATH = "modelResponse.csv";
     private static final int FRAME_RATE = 20; // how many times to record data per second
     private static final int RECORD_DELAY = 1000 / FRAME_RATE; // # of ms between each recording
 
@@ -52,7 +52,7 @@ public class DataRecordManager {
 
             }
         };
-        saveSprite = new Sprite("save record", ScreenSize.getWidth() - 300, 140, 300, 20, "ui") {
+        saveSprite = new Sprite("save record", ScreenSize.getWidth() - 300, 200, 300, 20, "ui") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
                 g.setColor(UI.BG_COLOR);
