@@ -30,10 +30,6 @@ public class InputTranslator implements Translator<double[], double[]> {
         "max_linear_velocity",
         "max_angular_velocity"
     };
-    private static final String[] OUTPUT_KEYS = new String[] {
-        "linear_accel",
-        "angular_accel"
-    };
 
     private ModelScalars modelScalars;
 
@@ -43,27 +39,43 @@ public class InputTranslator implements Translator<double[], double[]> {
 
     @Override
     public NDList processInput(TranslatorContext ctx, double[] unscaledInput) throws Exception {
-        NDManager manager = ctx.getNDManager();
-        
-        double maxDistance = 2500, maxLinearVel = 6, maxAngularVel = 0.03;
-
-        this.scaledInput[0] = unscaledInput[0] / maxDistance;
-        this.scaledInput[1] = unscaledInput[1] / maxDistance;
-        this.scaledInput[2] = unscaledInput[2] / maxDistance;
-        this.scaledInput[3] = unscaledInput[3] / maxDistance;
-        this.scaledInput[4] = unscaledInput[4] / maxDistance;
-        this.scaledInput[5] = unscaledInput[5] / maxLinearVel;
-        this.scaledInput[6] = unscaledInput[6] / maxAngularVel;
-
         this.unscaledInput = unscaledInput;
+        NDManager manager = ctx.getNDManager();
 
         float[] floatInput = new float[unscaledInput.length];
-        for (int i = 0; i < unscaledInput.length; i++) 
+        for (int i=0; i<unscaledInput.length; i++) {
+            scaledInput[i] = modelScalars.shouldApply() ? unscaledInput[i] / modelScalars.getScalar(INPUT_KEYS[i]) : unscaledInput[i];
             floatInput[i] = (float) scaledInput[i];
+        }
+
         
         return new NDList(manager.create(floatInput));
     }
 
+    // @Override
+    // public double[] processOutput(TranslatorContext ctx, NDList list) throws Exception {
+    //     NDArray output = list.singletonOrThrow();
+    //     float[] floatOutput = output.toFloatArray();
+    //     double[] unscaledOutput = new double[floatOutput.length];
+    //     double[] scaledOutput = new double[floatOutput.length];
+
+    //     for (int i=0; i<unscaledOutput.length; i++)
+    //         unscaledOutput[i] = (double) floatOutput[i];
+
+    //     double linearAccelMean = 0.661248372240548;
+    //     double linearAccelStd = 0.21516753742728412;
+    //     double angularAccelMean = -0.000444150596295356; 
+    //     double angularAccelStd = 0.00263167690547339;
+        
+    //     scaledOutput[0] = unscaledOutput[0] * linearAccelStd + linearAccelMean;
+    //     scaledOutput[1] = unscaledOutput[1] * angularAccelStd + angularAccelMean;
+
+    //     unscaledDataRecorder.addEntry("none", combine(unscaledInput, unscaledOutput));
+    //     scaledDataRecorder.addEntry("none", combine(scaledInput, scaledOutput));
+
+    //     return scaledOutput;
+    // }
+    
     @Override
     public double[] processOutput(TranslatorContext ctx, NDList list) throws Exception {
         NDArray output = list.singletonOrThrow();
@@ -73,20 +85,20 @@ public class InputTranslator implements Translator<double[], double[]> {
 
         for (int i=0; i<unscaledOutput.length; i++)
             unscaledOutput[i] = (double) floatOutput[i];
-
-        double linearAccelMean = 0.661248372240548;
-        double linearAccelStd = 0.21516753742728412;
-        double angularAccelMean = -0.000444150596295356; 
-        double angularAccelStd = 0.00263167690547339;
         
-        scaledOutput[0] = unscaledOutput[0] * linearAccelStd + linearAccelMean;
-        scaledOutput[1] = unscaledOutput[1] * angularAccelStd + angularAccelMean;
-
+        if (modelScalars.shouldApply()) {
+            scaledOutput[0] = unscaledOutput[0] * modelScalars.getScalar("linear_accel_std") + modelScalars.getScalar("linear_accel_mean");
+            scaledOutput[1] = unscaledOutput[1] * modelScalars.getScalar("angular_accel_std") + modelScalars.getScalar("angular_accel_mean");
+        }
+        else {
+            scaledOutput[0] = unscaledOutput[0];
+            scaledOutput[1] = unscaledOutput[1];
+        }
         unscaledDataRecorder.addEntry("none", combine(unscaledInput, unscaledOutput));
         scaledDataRecorder.addEntry("none", combine(scaledInput, scaledOutput));
 
         return scaledOutput;
-    }
+    } 
 
     private double[] combine(double[] a1, double[] a2) {
         double[] data = new double[a1.length + a2.length];

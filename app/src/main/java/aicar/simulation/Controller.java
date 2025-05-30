@@ -71,7 +71,7 @@ public class Controller {
                 g.setColor(UI.TEXT_COLOR);
                 g.drawString("Control Mode: " + Controller.this.controlMode, x + 5, y + 20);
                 g.drawString("Toggle Control Mode: " + TOGGLE_CONTROL_KEY, x + 5, y + 40);
-                g.drawString(modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading " + Controller.this.modelFileName + "...", x + 5, y + 60);
+                g.drawString(Controller.this.modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading " + Controller.this.modelFileName + "...", x + 5, y + 60);
                 g.drawString("type file name", x + 5, y + h + 25);
             }
         };
@@ -84,7 +84,7 @@ public class Controller {
             public void onEnter() {
                 modelFileName = getText().toLowerCase();
                 System.out.println("ON ENTER, loading " + modelFileName);
-                modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName + ".pt");
+                modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName);
             }
         };
     }

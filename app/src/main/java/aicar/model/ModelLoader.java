@@ -26,6 +26,7 @@ public class ModelLoader {
     public void loadModelAsync(String folderPath, String modelFileName) {
         isModelLoaded = false;
         new Thread(() -> {
+            isModelLoaded = false;
             modelPredictor = createPredictor(folderPath, modelFileName);
             isModelLoaded = true;
         }).start();

@@ -23,6 +23,7 @@ public class ModelScalars {
         }
         else
             data = null;
+        System.out.println("model scalar for " + filePath + " should apply: " + shouldApply());
     }
 
     public boolean shouldApply() {

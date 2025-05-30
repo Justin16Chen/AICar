@@ -4,6 +4,6 @@
     "max_angular_velocity": 0.03,
     "linear_accel_mean": 0.661248372240548,
     "linear_accel_std":  0.21516753742728412,
-    "angular_accel_mean": 0.000444150596295356,
+    "angular_accel_mean": -0.000444150596295356,
     "angular_accel_std": 0.00263167690547339
 }

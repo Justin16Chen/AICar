@@ -41,7 +41,7 @@ public abstract class TextInputSprite extends TextSprite {
     }
 
     private void updateText() {
-         if (keyboard.keyClicked("backspace")) {
+         if (keyboard.keyClicked("backspace") && !getText().isEmpty()) {
             setText(getText().substring(0, getText().length() - 1));
             cursorIndex--;
         }
