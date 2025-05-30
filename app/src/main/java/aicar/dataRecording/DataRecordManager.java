@@ -1,10 +1,14 @@
 package aicar.dataRecording;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.text.DecimalFormat;
 
+import aicar.model.InputTranslator;
 import aicar.simulation.Controller;
 import aicar.utils.ScreenSize;
 import aicar.utils.drawing.sprites.Sprite;
+import aicar.utils.drawing.sprites.TextSprite;
 import aicar.utils.drawing.sprites.UI;
 import aicar.utils.input.Keyboard;
 import aicar.utils.tween.Timer;
@@ -12,12 +16,13 @@ import aicar.utils.tween.Timer;
 import java.awt.Graphics2D;
 
 public class DataRecordManager {
-    private static final DecimalFormat DATE_FORMAT = new DecimalFormat("00");
-    private static final String DATA_FOLDER_FILEPATH = "app/output/humanResponse/mediumMap", HUMAN_DATA_FILEPATH = "thirdAttemptFixed.csv", MODEL_DATA_FILEPATH = "modelResponse.csv";
+    private static final String HUMAN_FILEPATH = "app/output/humanResponse/mediumMap/rightTurn.csv", 
+        MODEL_FILEPATH = "app/output/modelResponse/mediumMap/rightTurn.csv";
+
     private static final int FRAME_RATE = 20; // how many times to record data per second
     private static final int RECORD_DELAY = 1000 / FRAME_RATE; // # of ms between each recording
 
-    private static final String TOGGLE_RECORDING_KEY = "R", SAVE_RECORDING_KEY = "S";
+    private static final String TOGGLE_RECORDING_KEY = "R", SAVE_RECORDING_KEY = "S", DELETE_RECORDING_KEY = "Backspace";
 
     enum RecordMode {
         RECORDING,
@@ -25,21 +30,19 @@ public class DataRecordManager {
         NOT_RECORDING
     }
     private Keyboard keyInput;
+    private InputTranslator translator;
     private RecordMode recordMode;
     private DataRecorder dataRecorder;
-    private String dataFilePath;
     private long lastRecordedTime; // time of last recorded data (ms)
-    private Sprite saveSprite;
-    private long startTimeMillis;
+    private TextSprite saveSprite;
 
-    public DataRecordManager(Keyboard keyInput, Controller.ControlMode controlMode) {
+    public DataRecordManager(Keyboard keyInput, InputTranslator translator) {
         this.keyInput = keyInput;
+        this.translator = translator;
         dataRecorder = new DataRecorder(10, new DecimalFormat("#.#####"));
         recordMode = RecordMode.NOT_RECORDING;
-        dataFilePath = updateDataFilePath(controlMode);
-        startTimeMillis = System.currentTimeMillis();
 
-        new Sprite("data record UI", ScreenSize.getWidth() - 250, 80, 300, 85, "ui") {
+        new Sprite("data record UI", ScreenSize.getWidth() - 250, 140, 300, 105, "ui") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
                 g.setColor(UI.BG_COLOR);
@@ -48,29 +51,13 @@ public class DataRecordManager {
                 g.drawString("Record Mode: " + recordMode, x + 5, y + 15);
                 g.drawString("toggle recording: " + TOGGLE_RECORDING_KEY, x + 5, y + 35);
                 g.drawString("save recording: " + SAVE_RECORDING_KEY, x + 5, y + 55);
-                g.drawString("current timestamp: " + convertMsToTimestamp(System.currentTimeMillis() - startTimeMillis), x + 5, y + 75);
-
+                g.drawString("current timestamp: " + getTimestamp(), x + 5, y + 75);
             }
         };
-        saveSprite = new Sprite("save record", ScreenSize.getWidth() - 300, 200, 300, 20, "ui") {
-            @Override
-            public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
-                g.setColor(UI.BG_COLOR);
-                g.fillRect(x, y, w, h);
-                g.setColor(UI.TEXT_COLOR);
-                g.drawString("Saved to " + dataFilePath, x + 5, getBottom() - 5);
-            }
-        };
+        saveSprite = new TextSprite(ScreenSize.getWidth() - 300, 200, "Saved # lines to filepath", "ui");
         saveSprite.setVisible(false);
 
         lastRecordedTime = 0;
-    }
-
-    public void stopRecording() {
-        recordMode = RecordMode.NOT_RECORDING;
-    }
-    public void clearRecording() {
-        dataRecorder.clearDataPoints();
     }
 
     public void updateRecording(Controller.ControlMode controlMode, double[] inputs, double[] outputs) {
@@ -86,6 +73,11 @@ public class DataRecordManager {
         if (keyInput.keyClicked(SAVE_RECORDING_KEY))
             recordMode = RecordMode.SAVE;
         
+        if (keyInput.keyClicked(DELETE_RECORDING_KEY)) {
+            dataRecorder.clearDataPoints();
+            recordMode = RecordMode.NOT_RECORDING;
+        }
+        
         // take actions based off current recording state
         switch (recordMode) {
             case NOT_RECORDING: 
@@ -93,33 +85,35 @@ public class DataRecordManager {
                 break;
             case RECORDING: 
                 if (System.currentTimeMillis() - lastRecordedTime > RECORD_DELAY) {
-                    String timestamp = convertMsToTimestamp(System.currentTimeMillis() - startTimeMillis);
+                    String timestamp = getTimestamp();
                     dataRecorder.addDataPoint(timestamp, inputs, outputs); 
                     lastRecordedTime = System.currentTimeMillis();
                 }
                 break;
             case SAVE: 
-                dataFilePath = updateDataFilePath(controlMode);
-                dataRecorder.saveToFile(DATA_FOLDER_FILEPATH, dataFilePath);
-                recordMode = RecordMode.NOT_RECORDING; // only want to save once
+                String path = getDataFilePath(controlMode);
+
+                saveSprite.setText("Saved " + dataRecorder.getNumEntries() + " entries to " + path);
                 saveSprite.setVisible(true);
-                Timer.createSetTimer("hide save sprite", saveSprite, 1.5, "visible", false);
+                Timer.createSetTimer("hide save sprite", saveSprite, 3, "visible", false);
+
+                dataRecorder.saveToFile(path);
+                translator.saveData();
+                recordMode = RecordMode.NOT_RECORDING;
                 break;
         }
     }
-    private String updateDataFilePath(Controller.ControlMode controlMode) {
-        String filePath = "";
+    private String getDataFilePath(Controller.ControlMode controlMode) {
         switch (controlMode) {
-            case HUMAN: filePath = HUMAN_DATA_FILEPATH; break;
-            case MODEL: filePath = MODEL_DATA_FILEPATH; break;
+            case HUMAN: return HUMAN_FILEPATH;
+            case MODEL: return MODEL_FILEPATH;
+            default: return "";
         }
-        return filePath;
     }
 
-    public String convertMsToTimestamp(long millis) {
-        int seconds = (int) (millis / 1000);
-        int minutes = seconds / 60;
-        int hours = minutes / 60;
-        return DATE_FORMAT.format(hours) + ":" + DATE_FORMAT.format(minutes % 60) + ":" + DATE_FORMAT.format(seconds % 60);
+    public String getTimestamp() {
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return now.format(formatter);
     }
 }

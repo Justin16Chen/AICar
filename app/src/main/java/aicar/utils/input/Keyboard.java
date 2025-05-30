@@ -52,6 +52,25 @@ public class Keyboard extends KeyAdapter {
         }
     }
 
+    public ArrayList<String> getAlphaNumericKeysClicked() {
+        ArrayList<String> keys = new ArrayList<>();
+        for (String keyName : keyList) {
+            Key key = keyMap.get(parseKeyName(keyName));
+            if (key.isAlphaNumeric() && key.clicked())
+                keys.add(keyName);
+        }
+        return keys;
+    }
+    public ArrayList<String> getAlphaNumericKeysDown() {
+        ArrayList<String> keys = new ArrayList<>();
+        for (String keyName : keyList) {
+            Key key = keyMap.get(parseKeyName(keyName));
+            if (key.isAlphaNumeric() && key.down())
+                keys.add(keyName);
+        }
+        return keys;
+    }
+
     private String parseKeyName(String keyName) {
         return keyName.toLowerCase();
     }

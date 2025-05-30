@@ -19,7 +19,7 @@ import aicar.utils.math.Vec;
 
 public class World {
 
-    private static final Color ROAD_COLOR = new Color(30, 30, 40), WALL_COLOR_LIGHT = new Color(80, 125, 55), WALL_COLOR_DARK = new Color(62, 107, 47);
+    private static final Color ROAD_COLOR = new Color(30, 30, 40), WALL_COLOR_LIGHT = new Color(80, 135, 55), WALL_COLOR_DARK = new Color(62, 117, 47);
     private static final String ROAD_STRING = "-", WALL_STRING = "0";
     public enum TileType {
         ROAD, WALL, OUT_OF_BOUNDS

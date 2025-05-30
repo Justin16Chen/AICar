@@ -10,6 +10,7 @@ import aicar.model.ModelLoader;
 import aicar.utils.ScreenSize;
 import aicar.utils.drawing.sprites.Camera;
 import aicar.utils.drawing.sprites.Sprite;
+import aicar.utils.drawing.sprites.TextInputSprite;
 import aicar.utils.drawing.sprites.TextSprite;
 import aicar.utils.drawing.sprites.UI;
 import aicar.utils.input.Keyboard;
@@ -19,7 +20,7 @@ import aicar.utils.tween.Timer;
 
 public class Controller {
     private static final String WORLD_MAP_FILEPATH = "/world/mediumMapMedRes.json",
-        MODEL_FOLDER_PATH = "/models/simple", MODEL_FILE_NAME = "model_v2";
+        DEFAULT_MODEL_FOLDER_PATH = "/models", DEFAULT_MODEL_FILE_NAME = "modelcomplex";
     private static final String TOGGLE_CONTROL_KEY = "C";
 
     public enum ControlMode {
@@ -36,6 +37,8 @@ public class Controller {
     private ModelLoader modelLoader;
     private DataRecordManager dataRecordManager;
     private TextSprite newSpawnSprite;
+    private String modelFileName;
+    private TextInputSprite modelTextInput;
 
     public Controller(ControlMode controlMode, Keyboard keyboard, Mouse mouse, int screenWidth, int screenHeight) {
         this.controlMode = controlMode;
@@ -45,9 +48,10 @@ public class Controller {
         world = new World(WORLD_MAP_FILEPATH, camera);
         car = new Car(world, world.getSpawnPosition(), world.getSpawnAngle());
         modelLoader = new ModelLoader();
-        modelLoader.loadModelAsync(MODEL_FOLDER_PATH, MODEL_FILE_NAME);
+        modelFileName = DEFAULT_MODEL_FILE_NAME;
+        modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName);
         camera.setWorldBounds(world.getWorldWidth(), world.getWorldHeight());
-        dataRecordManager = new DataRecordManager(keyboard, controlMode);
+        dataRecordManager = new DataRecordManager(keyboard, modelLoader.getTranslator());
 
         new Sprite("mouse", "ui") {
             @Override
@@ -57,21 +61,32 @@ public class Controller {
                 g.fillRect(mouse.getX() - radius, mouse.getY() - radius, radius * 2, radius * 2);
             }
         };
-        new Sprite("control mode", "ui") {
+        new Sprite("control mode", ScreenSize.getWidth() - 250, 0, 250, 70, "ui") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
-                int left = ScreenSize.getWidth() - 250;
                 g.setColor(UI.BG_COLOR);
-                g.fillRect(left, 0, 300, 70);
+                g.fillRect(x, y, w, h);
+                g.fillRect(x, y + h + 10, w, 20);
+
                 g.setColor(UI.TEXT_COLOR);
-                g.drawString("Control Mode: " + controlMode, left + 5, 20);
-                g.drawString("Toggle Control Mode: " + TOGGLE_CONTROL_KEY, left + 5, 40);
-                g.drawString(modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading Model...", left + 5, 60);
+                g.drawString("Control Mode: " + Controller.this.controlMode, x + 5, y + 20);
+                g.drawString("Toggle Control Mode: " + TOGGLE_CONTROL_KEY, x + 5, y + 40);
+                g.drawString(modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading " + Controller.this.modelFileName + "...", x + 5, y + 60);
+                g.drawString("type file name", x + 5, y + h + 25);
             }
         };
 
         newSpawnSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "Spawn set at (x, y)", "ui");
         newSpawnSprite.setVisible(false);
+
+        modelTextInput = new TextInputSprite(keyboard, mouse, ScreenSize.getWidth() - 250, 110, 240, 20, "ui") {
+            @Override
+            public void onEnter() {
+                modelFileName = getText().toLowerCase();
+                System.out.println("ON ENTER, loading " + modelFileName);
+                modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName + ".pt");
+            }
+        };
     }
 
     public ControlMode getControlMode() {
@@ -85,29 +100,27 @@ public class Controller {
         return camera;
     }
 
-    // public void loadModel(String folder, String name) {
-    //     modelLoader.loadModelAsync(folder, name);
-    // }
-
     public void update() {
-        if (keyboard.keyClicked(TOGGLE_CONTROL_KEY)) {
-            controlMode = controlMode == ControlMode.HUMAN ? ControlMode.MODEL : ControlMode.HUMAN;
-            if (controlMode == ControlMode.MODEL && !modelLoader.isModelLoaded()) {
-                controlMode = ControlMode.HUMAN;
-                TextSprite modelLoadSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "MODEL IS NOT LOADED", "ui");
-                Timer.createSetTimer("hide model load sprite", modelLoadSprite, 3, "visible", false);
+        if (!modelTextInput.isSelected()) {
+            if (keyboard.keyClicked(TOGGLE_CONTROL_KEY)) {
+                controlMode = controlMode == ControlMode.HUMAN ? ControlMode.MODEL : ControlMode.HUMAN;
+                if (controlMode == ControlMode.MODEL && !modelLoader.isModelLoaded()) {
+                    controlMode = ControlMode.HUMAN;
+                    TextSprite modelLoadSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "MODEL IS NOT LOADED", "ui");
+                    Timer.createSetTimer("hide model load sprite", modelLoadSprite, 3, "visible", false);
+                }
+                else if (controlMode == ControlMode.HUMAN)
+                    car.stop();
             }
-            else if (controlMode == ControlMode.HUMAN)
-                car.stop();
-        }
 
-        if (mouse.clicked() && keyboard.keyDown("Ctrl")) {
-            int x = (int) camera.screenXToWorld(mouse.getX());
-            int y = (int) camera.screenYToWorld(mouse.getY());
-            newSpawnSprite.setText("Spawn set at (" + x + ", " + y + ")");
-            newSpawnSprite.setVisible(true);
-            Timer.createSetTimer("hide new spawn sprite", newSpawnSprite, 1.5, "visible", false);
-            world.setSpawnPos(new Vec(x, y), Math.atan2(car.getCenterY() - world.getWorldHeight() * 0.5, car.getCenterX() - world.getWorldWidth() * 0.5) - Math.PI * 0.5);
+            if (mouse.clicked() && keyboard.keyDown("Ctrl")) {
+                int x = (int) camera.screenXToWorld(mouse.getX());
+                int y = (int) camera.screenYToWorld(mouse.getY());
+                newSpawnSprite.setText("Spawn set at (" + x + ", " + y + ")");
+                newSpawnSprite.setVisible(true);
+                Timer.createSetTimer("hide new spawn sprite", newSpawnSprite, 1.5, "visible", false);
+                world.setSpawnPos(new Vec(x, y), Math.atan2(car.getCenterY() - world.getWorldHeight() * 0.5, car.getCenterX() - world.getWorldWidth() * 0.5) - Math.PI * 0.5);
+            }
         }
         
         
@@ -123,18 +136,15 @@ public class Controller {
         
         dataRecordManager.updateRecording(controlMode, modelInputs, car.getAcceleration());
             
-        if (car.updateCollisions()) {
-            dataRecordManager.stopRecording();
-            dataRecordManager.clearRecording();
-        }
+        car.updateCollisions();
         car.updateSprites();
         camera.follow(car.getCenterX(), car.getCenterY());
     }
 
     private void updateHuman() {
+        if (modelTextInput.isSelected())
+            return;
         double drivePower = 0, turnPower = 0;
-        if (keyboard == null)
-            throw new IllegalStateException("key input cannot be null when control mode is human");
 
         if (mouse.down()) {
             double angle = car.getAngle();
@@ -155,6 +165,7 @@ public class Controller {
         try {
             acceleration = modelLoader.getPredictor().predict(modelInputs);
         } catch (TranslateException e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("the model inputs: " + Arrays.toString(modelInputs) + " are not formatted correctly");
         }
         car.recieveAccelerations(acceleration[0], acceleration[1]);

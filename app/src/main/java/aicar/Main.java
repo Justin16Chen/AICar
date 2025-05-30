@@ -49,7 +49,7 @@ public class Main extends JFrame {
 
         // add inputs
         keyboard = new Keyboard();
-        mouse = new Mouse(new Insets(20, 0, 0, 0));
+        mouse = new Mouse(new Insets(25, 0, 0, 0));
         addKeyListener(keyboard);
         addMouseMotionListener(mouse);
         addMouseListener(mouse);

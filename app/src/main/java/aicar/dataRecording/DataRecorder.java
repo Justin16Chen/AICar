@@ -2,6 +2,9 @@ package aicar.dataRecording;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -27,6 +30,16 @@ public class DataRecorder {
         dataPoints.clear();
     }
 
+    public void addEntry(String timestamp, double[] values) {
+        if (1 + values.length != cols)
+            throw new IllegalArgumentException(values.length + " values not match expected header count of " + cols);
+        
+        String entry = timestamp + "," + IntStream.range(0, values.length)
+            .mapToObj(i -> df.format(values[i]))
+            .collect(Collectors.joining(","));
+        dataPoints.add(entry.substring(0, entry.length() - 1));
+
+    }
     public void addDataPoint(String timestamp, double[] distances, double[] responses) {
         if (1 + distances.length + responses.length != cols)
             throw new IllegalArgumentException(distances.length + " distances and " + responses.length + " responses do not match expected header count of " + cols);
@@ -38,14 +51,18 @@ public class DataRecorder {
         dataPoints.add(entry.substring(0, entry.length() - 1));
     }
 
+    public int getNumEntries() {
+        return dataPoints.size();
+    }
+
     // append dataPoints to end of CSV file
-    public void saveToFile(String folderPath, String fileName) {
+    public void saveToFile(String filePath) {
         try {
-            Path path = Paths.get(folderPath, fileName);
+            Path path = Paths.get(filePath);
             Files.write(path, dataPoints, StandardOpenOption.APPEND);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new IllegalArgumentException(fileName + " at " + folderPath + " does not exist");
+            throw new IllegalArgumentException(filePath + " does not exist");
         }
         dataPoints.clear();
     }

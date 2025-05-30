@@ -12,7 +12,6 @@ public class ModelScalars {
     private JSONObject data;
     public ModelScalars(String filePath) {
         dataFilePath = filePath;
-        System.out.println(filePath);
         InputStream is = getClass().getResourceAsStream(filePath);
 
         if (is != null) {

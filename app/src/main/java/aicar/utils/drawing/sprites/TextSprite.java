@@ -7,9 +7,9 @@ import java.awt.Insets;
 public class TextSprite extends Sprite {
     
     private String text;
-    private Color bgColor, textColor;
-    private Insets padding;
-    private boolean first = true;
+    protected Color bgColor, textColor;
+    protected Insets padding;
+    private boolean updateWidth;
 
     public TextSprite(int x, int y, String text, String layer) {
         super(text, x, y, 1, 1, layer);
@@ -17,6 +17,7 @@ public class TextSprite extends Sprite {
         bgColor = UI.BG_COLOR;
         textColor = UI.TEXT_COLOR;
         padding = new Insets(5, 5, 5, 5);
+        updateWidth = true;
     }
 
     public String getText() {
@@ -30,10 +31,13 @@ public class TextSprite extends Sprite {
         this.textColor = textColor;
     }
 
+    public void setUpdateWidth(boolean updateWidth) {
+        this.updateWidth = updateWidth;
+    }
+
     @Override
     public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
-        if (first) {
-            first = false;
+        if (updateWidth) {
             setWidth(g.getFontMetrics().stringWidth(text) + padding.left + padding.right);
             setHeight(g.getFontMetrics().getHeight() + padding.top + padding.bottom);
             setX(getX() - getWidth() / 2);
