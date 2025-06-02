@@ -19,9 +19,9 @@ import aicar.utils.math.Vec;
 import aicar.utils.tween.Timer;
 
 public class Controller {
-    private static final String WORLD_MAP_FILEPATH = "/world/mediumMapMedRes.json",
+    private static final String WORLD_FOLDER_PATH = "/world/", DEFAULT_WORLD_MAP_FILEPATH = "mediummap.json",
         DEFAULT_MODEL_FOLDER_PATH = "/models", DEFAULT_MODEL_FILE_NAME = "modelcomplex";
-    private static final String TOGGLE_CONTROL_KEY = "C";
+    private static final String TOGGLE_CONTROL_KEY = "C", TOGGLE_DISTANCE_SENSOR_VISIBLE_KEY = "H";
 
     public enum ControlMode {
         MODEL,
@@ -39,13 +39,16 @@ public class Controller {
     private TextSprite newSpawnSprite;
     private String modelFileName;
     private TextInputSprite modelTextInput;
+    private String worldMapFileName;
+    private TextInputSprite worldMapTextInput;
 
     public Controller(ControlMode controlMode, Keyboard keyboard, Mouse mouse, int screenWidth, int screenHeight) {
         this.controlMode = controlMode;
         this.keyboard = keyboard;
         this.mouse = mouse;
         camera = new Camera(screenWidth, screenHeight, 200, 200);
-        world = new World(WORLD_MAP_FILEPATH, camera);
+        worldMapFileName = DEFAULT_WORLD_MAP_FILEPATH;
+        world = new World(WORLD_FOLDER_PATH + worldMapFileName, camera);
         car = new Car(world, world.getSpawnPosition(), world.getSpawnAngle());
         modelLoader = new ModelLoader();
         modelFileName = DEFAULT_MODEL_FILE_NAME;
@@ -61,32 +64,43 @@ public class Controller {
                 g.fillRect(mouse.getX() - radius, mouse.getY() - radius, radius * 2, radius * 2);
             }
         };
-        new Sprite("control mode", ScreenSize.getWidth() - 250, 0, 250, 70, "ui") {
+        new Sprite("control mode", ScreenSize.getWidth() - 250, 0, 250, 110, "ui") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
                 g.setColor(UI.BG_COLOR);
                 g.fillRect(x, y, w, h);
-                g.fillRect(x, y + h + 10, w, 20);
+                g.fillRect(x, 120, w, 20);
+                g.fillRect(x, 160, w, 20);
 
                 g.setColor(UI.TEXT_COLOR);
                 g.drawString("Control Mode: " + Controller.this.controlMode, x + 5, y + 20);
                 g.drawString("Toggle Control Mode: " + TOGGLE_CONTROL_KEY, x + 5, y + 40);
                 g.drawString(Controller.this.modelLoader.isModelLoaded() ? "Model Successfully Loaded " : "Loading " + Controller.this.modelFileName + "...", x + 5, y + 60);
-                g.drawString("type file name", x + 5, y + h + 25);
+                g.drawString("Current model: " + Controller.this.modelFileName, x + 5, y + 80);
+                g.drawString("Current map: " + Controller.this.worldMapFileName, x + 5, y + 100);
+
+                g.drawString("type model file name", x + 5, 135);
+                g.drawString("type map file name", x+ 5, 175);
+            }
+        };
+
+        modelTextInput = new TextInputSprite(keyboard, mouse, ScreenSize.getWidth() - 250, 140, 240, 20, "ui") {
+            @Override
+            public void onEnter() {
+                modelFileName = getText().toLowerCase();
+                modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName);
+            }
+        };
+        worldMapTextInput = new TextInputSprite(keyboard, mouse, ScreenSize.getWidth() - 250, 180, 240, 20, "ui") {
+            @Override
+            public void onEnter() {
+                worldMapFileName = getText().toLowerCase();
+                world.loadMap(WORLD_FOLDER_PATH + worldMapFileName + ".json");
             }
         };
 
         newSpawnSprite = new TextSprite(ScreenSize.getWidth() / 2, 10, "Spawn set at (x, y)", "ui");
         newSpawnSprite.setVisible(false);
-
-        modelTextInput = new TextInputSprite(keyboard, mouse, ScreenSize.getWidth() - 250, 110, 240, 20, "ui") {
-            @Override
-            public void onEnter() {
-                modelFileName = getText().toLowerCase();
-                System.out.println("ON ENTER, loading " + modelFileName);
-                modelLoader.loadModelAsync(DEFAULT_MODEL_FOLDER_PATH, modelFileName);
-            }
-        };
     }
 
     public ControlMode getControlMode() {
@@ -101,7 +115,8 @@ public class Controller {
     }
 
     public void update() {
-        if (!modelTextInput.isSelected()) {
+        boolean uiSelected = modelTextInput.isSelected() || worldMapTextInput.isSelected();
+        if (!uiSelected) {
             if (keyboard.keyClicked(TOGGLE_CONTROL_KEY)) {
                 controlMode = controlMode == ControlMode.HUMAN ? ControlMode.MODEL : ControlMode.HUMAN;
                 if (controlMode == ControlMode.MODEL && !modelLoader.isModelLoaded()) {
@@ -121,6 +136,9 @@ public class Controller {
                 Timer.createSetTimer("hide new spawn sprite", newSpawnSprite, 1.5, "visible", false);
                 world.setSpawnPos(new Vec(x, y), Math.atan2(car.getCenterY() - world.getWorldHeight() * 0.5, car.getCenterX() - world.getWorldWidth() * 0.5) - Math.PI * 0.5);
             }
+
+            if (keyboard.keyClicked(TOGGLE_DISTANCE_SENSOR_VISIBLE_KEY))
+                car.toggleDistanceSensorVisible();
         }
         
         
@@ -142,7 +160,8 @@ public class Controller {
     }
 
     private void updateHuman() {
-        if (modelTextInput.isSelected())
+        boolean uiSelected = modelTextInput.isSelected() || worldMapTextInput.isSelected();
+        if (uiSelected)
             return;
         double drivePower = 0, turnPower = 0;
 

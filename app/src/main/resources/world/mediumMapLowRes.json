@@ -1,7 +1,0 @@
-{
-    "type": "PNG",
-    "tileSize": 32,
-    "spawnCol": 32, "spawnRow": 86, "spawnAngle": 90,
-    "roadThreshold": 50,
-    "map": "/world/mediumMapLowRes.png"
-}

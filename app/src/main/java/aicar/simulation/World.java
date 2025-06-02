@@ -79,6 +79,12 @@ public class World {
         };
     }
 
+    public void loadMap(String filePath) {
+        MapFile newMapFile = parseToMapFile(filePath);
+        if (newMapFile != null)
+            mapFile = newMapFile;
+    }
+
     public int getWorldWidth() {
         return mapFile.cols *  mapFile.tileSize;
     }

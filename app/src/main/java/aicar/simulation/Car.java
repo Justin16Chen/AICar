@@ -168,4 +168,8 @@ public class Car extends Sprite {
         distanceLinesSprite.setX(getCenterX());
         distanceLinesSprite.setY(getCenterY());
     }
+
+    public void toggleDistanceSensorVisible() {
+        distanceLinesSprite.setVisible(!distanceLinesSprite.isVisible());
+    }
 }

@@ -1,38 +1,15 @@
 package aicar.simulation;
 
-import java.awt.Color;
-
-import aicar.utils.drawing.sprites.Sprite;
 import aicar.utils.math.JMath;
 import aicar.utils.math.Vec;
 
 public class DistanceSensor {
-
-    //private static final DecimalFormat df = new DecimalFormat("0.000");
     private World world;
-    private Sprite rayCollisionSprite;
-    // private Sprite[] tileSprites;
     private int maxSteps;
 
     public DistanceSensor(World world, int maxSteps) {
         this.world = world;
         this.maxSteps = maxSteps;
-
-        rayCollisionSprite = new Sprite("distance sensor collision", 0, 0, 5, 5, "car");
-        rayCollisionSprite.setColor(Color.RED);
-        // tileSprites = new Sprite[maxSteps];
-        // for (int i=0; i<tileSprites.length; i++) {
-        //     tileSprites[i] = new Sprite("distance sensor intersection1", 0, 0, world.getTileSize(), world.getTileSize(), "car");
-        //     tileSprites[i].setColor(new Color(255, 200, 100, 100));
-        // }
-
-        // new Sprite("debug", "ui") {
-        //     @Override
-        //     public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
-        //         g.setColor(Color.RED);
-        //         g.drawString(text, 50, 50);
-        //     }
-        // };
     }
 
     public double castRay(double x, double y, double angle) {
@@ -87,24 +64,8 @@ public class DistanceSensor {
                 colsTraveled += rayXDir;
             }
 
-            // if (keyInput.keyClicked("q")) {
-            //     System.out.println("\tstep " + steps + " : row " + rowsTraveled + " col " + colsTraveled);
-            //     System.out.println("\tvIntersect: " + verticalIntersection + " | hIntersect: " + horizontalIntersection);
-            //     System.out.println("\thdist: " + df.format(horizontalDistSquared) + " | vdist: " + df.format(verticalDistSquared));
-            // }
-            
-            // tileSprites[steps].setVisible(true);
-            // tileSprites[steps].setPosition(world.getTileSize() * (startCol + colsTraveled), world.getTileSize() * (startRow + rowsTraveled));
-
             steps++;   
         }
-        double totalDist = Math.sqrt(Math.min(verticalDistSquared, horizontalDistSquared));
-        rayCollisionSprite.setPosition((int) (pos.x() + Math.cos(angle) * totalDist), (int) (pos.y() + Math.sin(angle) * totalDist));
-        return totalDist;
+        return Math.sqrt(Math.min(verticalDistSquared, horizontalDistSquared));
     }
-
-    // private void hideSprites() {
-    //     for (Sprite sprite : tileSprites)
-    //         sprite.setVisible(false);
-    // }
 }

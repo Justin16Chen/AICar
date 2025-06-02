@@ -1,7 +1,0 @@
-{
-    "type": "PNG",
-    "tileSize": 8, "patternTileSize": 4,
-    "spawnCol": 55, "spawnRow": 130, "spawnAngle": 270,
-    "roadThreshold": 50,
-    "map": "/world/mediumMapMedRes.png"
-}

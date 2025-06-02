@@ -42,7 +42,7 @@ public class DataRecordManager {
         dataRecorder = new DataRecorder(10, new DecimalFormat("#.#####"));
         recordMode = RecordMode.NOT_RECORDING;
 
-        new Sprite("data record UI", ScreenSize.getWidth() - 250, 140, 300, 105, "ui") {
+        new Sprite("data record UI", ScreenSize.getWidth() - 250, 210, 300, 85, "ui") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
                 g.setColor(UI.BG_COLOR);
