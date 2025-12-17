@@ -1,4 +1,4 @@
-package aicar.utils;
+package aicar.utils.misc;
 
 // allows any class to statically access screen dimensions
 public class ScreenSize {

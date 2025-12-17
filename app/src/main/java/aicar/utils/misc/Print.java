@@ -1,4 +1,4 @@
-package aicar.utils;
+package aicar.utils.misc;
 
 public class Print {
     public static final String RESET = "\033[0m";  // Reset to default color

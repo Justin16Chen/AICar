@@ -3,24 +3,18 @@ package aicar;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
 import javax.swing.JFrame;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import aicar.simulation.Controller;
 import aicar.simulation.Drawer;
-import aicar.utils.ScreenSize;
+import aicar.utils.misc.ScreenSize;
 import aicar.utils.drawing.sprites.Sprite;
-import aicar.utils.drawing.sprites.TextSprite;
 import aicar.utils.drawing.sprites.UI;
 import aicar.utils.input.Keyboard;
 import aicar.utils.input.Mouse;
-import aicar.utils.tween.Timer;
 import aicar.utils.tween.Updatables;
 
 public class Main extends JFrame {

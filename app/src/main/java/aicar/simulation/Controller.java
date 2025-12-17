@@ -7,7 +7,7 @@ import java.util.Arrays;
 import ai.djl.translate.TranslateException;
 import aicar.dataRecording.DataRecordManager;
 import aicar.model.ModelLoader;
-import aicar.utils.ScreenSize;
+import aicar.utils.misc.ScreenSize;
 import aicar.utils.drawing.sprites.Camera;
 import aicar.utils.drawing.sprites.Sprite;
 import aicar.utils.drawing.sprites.TextInputSprite;
@@ -174,7 +174,7 @@ public class Controller {
             turnPower = carToMouse.y() / ScreenSize.getWidth() * 2;
         }
 
-        car.recieveHumanInput(drivePower, turnPower);
+        car.receiveHumanInput(drivePower, turnPower);
     }
 
     private void updateModel(double[] modelInputs) {
@@ -187,7 +187,7 @@ public class Controller {
             e.printStackTrace();
             throw new IllegalArgumentException("the model inputs: " + Arrays.toString(modelInputs) + " are not formatted correctly");
         }
-        car.recieveAccelerations(acceleration[0], acceleration[1]);
+        car.receiveAccelerations(acceleration[0], acceleration[1]);
     }
 
     private double[] createModelInputs(double[] distances, double[] velocity) {

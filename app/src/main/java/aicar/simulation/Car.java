@@ -15,16 +15,16 @@ public class Car extends Sprite {
         ANGULAR_ACCEL_SCALAR = 0.002, PREV_ANGULAR_ACCEL_SCALAR = 0.8, MAX_ANGULAR_SPEED = 0.03;
     public static final int NUM_SENSORS = 5, MAX_SENSOR_DIST = 2500;
     private static final double SENSOR_ANGLE_SPREAD = Math.toRadians(25);
-    private World world;
+    private final World world;
     private Vec pos;
     private double angle;
     private double linearVel, angularVel;
     private double linearAccel, angularAccel;
     private double frictionCoefficient, angularFrictionCoefficient;
-    private DistanceSensor[] distanceSensors;
-    private double distances[];
-    private Sprite centerSprite;
-    private Sprite distanceLinesSprite;
+    private final DistanceSensor[] distanceSensors;
+    private final double[] distances;
+    private final Sprite centerSprite;
+    private final Sprite distanceLinesSprite;
 
     public Car(World world, Vec pos, double heading) {
         super("carNew", CAR_IMAGE_PATH, (int) pos.x(), (int) pos.y(), 36, 36, "car");
@@ -67,7 +67,7 @@ public class Car extends Sprite {
                 g.drawString("angular vel: " + df.format(angularVel), textX, 220);
             }
         };
-        distanceLinesSprite = new Sprite("distance lines", "car") {
+        distanceLinesSprite = new Sprite("distance lines", 0, 0, 1, 1,"car") {
             @Override
             public void drawSelf(Graphics2D g, int x, int y, int w, int h, double a) {
                 g.setColor(Color.RED);
@@ -94,18 +94,18 @@ public class Car extends Sprite {
     }
 
     // i cannot directly control acceleration (no feasible way to with a keyboard)
-    // i can only give quantized accelerations - model should recieve continuous spectrum of accelerations
+    // i can only give quantized accelerations - model should receive continuous spectrum of accelerations
     // drivePower and turnPower can only be {-1, 0, 1}
-    public void recieveHumanInput(double drivePower, double turnPower) {
-        // allow accerations of previous frames to affect current accelerations
+    public void receiveHumanInput(double drivePower, double turnPower) {
+        // allow accelerations of previous frames to affect current accelerations
         linearAccel = drivePower * LINEAR_ACCEL_SCALAR + linearAccel * PREV_LINEAR_ACCEL_SCALAR; 
         angularAccel = turnPower * ANGULAR_ACCEL_SCALAR + angularAccel * PREV_ANGULAR_ACCEL_SCALAR;
 
-        recieveAccelerations(linearAccel, angularAccel);
+        receiveAccelerations(linearAccel, angularAccel);
     }
 
     // model can directly control acceleration
-    public void recieveAccelerations(double linearAccel, double angularAccel) {
+    public void receiveAccelerations(double linearAccel, double angularAccel) {
         this.linearAccel = linearAccel;
         linearVel += linearAccel;
         linearVel *= frictionCoefficient;
@@ -159,8 +159,7 @@ public class Car extends Sprite {
     }
 
     public void updateSprites() {
-        setCenterX((int) pos.x());
-        setCenterY((int) pos.y());
+        setCenterPosition((int) pos.x(), (int) pos.y());
         setAngle(angle);
         centerSprite.setCenterPosition(getCenterX(), getCenterY());
 

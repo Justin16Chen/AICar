@@ -8,15 +8,18 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import aicar.utils.Print;
+import aicar.utils.math.Vec;
+import aicar.utils.misc.Print;
 import aicar.utils.math.JMath;
 
 public class Sprite extends TaggableChild<Sprite> {
 
-    private String name, layerName;
+    private final String name;
+    private final String layerName;
     private BufferedImage image;
     private int x, y, width, height;
     private double angle; //angle is in radians
+    private Vec rotationPoint; // relative to center of sprite
     private boolean visible;
     private Color color;
 
@@ -29,6 +32,7 @@ public class Sprite extends TaggableChild<Sprite> {
         width = 1;
         height = 1;
         angle = 0;
+        rotationPoint = new Vec(0, 0);
         image = null;
         visible = true;
         color = Color.BLACK;
@@ -45,6 +49,7 @@ public class Sprite extends TaggableChild<Sprite> {
         width = 1;
         height = 1;
         angle = 0;
+        rotationPoint = new Vec(0, 0);
         visible = true;
         color = Color.BLACK;
         Sprites.addSprite(this, layerName);
@@ -56,6 +61,7 @@ public class Sprite extends TaggableChild<Sprite> {
         this.width = width;
         this.height = height;
         angle = 0;
+        rotationPoint = new Vec(0, 0);
         this.layerName = layerName;
 
         image = null;
@@ -71,6 +77,7 @@ public class Sprite extends TaggableChild<Sprite> {
         this.width = width;
         this.height = height;
         angle = 0;
+        rotationPoint = new Vec(0, 0);
         this.layerName = layerName;
 
         visible = true;
@@ -102,6 +109,8 @@ public class Sprite extends TaggableChild<Sprite> {
     public void setDimensions(int width, int height) { this.width = width; this.height = height; }
     public double getAngle() { return angle; }
     public void setAngle(double angle) { this.angle = angle; }
+    public Vec getRotationPoint() { return rotationPoint; }
+    public void setRotationPoint(double x, double y) { this.rotationPoint = new Vec(x, y); }
     public boolean isVisible() { return visible; }
 
     public void setVisible(boolean visible) { 
@@ -161,8 +170,10 @@ public class Sprite extends TaggableChild<Sprite> {
     public final void draw(Graphics2D g, Camera camera) {
         if (isVisible() && width > 0 && height > 0 && camera.onScreen(x, y, Math.max(width, height), Math.max(width, height))) { // I do Math.max(width, height) to account for any possible rotation (the extra pixels do not matter much)
             Rect drawRect = camera.getScreenRect(x, y, width, height);
+
             angle = JMath.simplifyAngle(angle);
             drawSelf(g, drawRect.x(), drawRect.y(), drawRect.width(), drawRect.height(), angle);
+
         }
     }
 
@@ -178,42 +189,32 @@ public class Sprite extends TaggableChild<Sprite> {
         }
         else {
             AffineTransform old = g.getTransform();
-            AffineTransform transform = new AffineTransform();
-            transform.translate(x + width / 2, y + height / 2);
+            AffineTransform transform = new AffineTransform(old);
+
+            double xOffset = width * 0.5 + rotationPoint.x();
+            double yOffset = height * 0.5 + rotationPoint.y();
+            double tx = x + xOffset, ty = y + yOffset;
+            transform.translate(tx, ty);
             transform.rotate(angle);
-            transform.translate(-width / 2., -height / 2.);
-            
+            transform.translate(-xOffset, -yOffset);
+
             if (image == null) {
                 g.setTransform(transform);
                 g.setColor(color);
-                g.fillRect(x, y, width, height);
+                g.fillRect(0, 0, width, height);
             }
             else {
-                transform.scale(width * 1. / image.getWidth(), height * 1. / image.getHeight());
                 g.setTransform(transform);
-                g.drawImage(image, 0, 0, null);
+                g.drawImage(image, 0, 0, width, height, null);
             }
             g.setTransform(old);
         }
-        // if (image == null) {
-        //     g.setColor(color);
-        //     g.fillRect(x, y, width, height);
-        // }
-        // else if (angle == 0) {
-        //     g.drawImage(image, x, y, width, height, null);
-        // }
-        // else {
-        //     AffineTransform transform = new AffineTransform();
-        //     transform.translate(x + width / 2, y + height / 2);
-        //     transform.rotate(angle);
-        //     transform.translate(-width / 2., -height / 2.);
-        //     transform.scale(width * 1. / image.getWidth(), height * 1. / image.getHeight());
-        //     g.drawImage(image, transform, null);
-        // }
     }
 
     @Override
     public boolean equals(Object obj) {
+        if (obj.getClass() != Sprite.class)
+            return false;
         Sprite sprite = (Sprite) obj;
         return name.equals(sprite.getName()) && x == sprite.x && y == sprite.y && width == sprite.width && height == sprite.height && layerName.equals(sprite.getLayerName());
     }

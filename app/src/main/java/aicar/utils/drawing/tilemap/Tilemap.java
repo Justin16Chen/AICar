@@ -13,7 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import aicar.utils.Print;
+import aicar.utils.misc.Print;
 
 /* example tilemap rule file
 {

@@ -6,7 +6,7 @@ import java.text.DecimalFormat;
 
 import aicar.model.InputTranslator;
 import aicar.simulation.Controller;
-import aicar.utils.ScreenSize;
+import aicar.utils.misc.ScreenSize;
 import aicar.utils.drawing.sprites.Sprite;
 import aicar.utils.drawing.sprites.TextSprite;
 import aicar.utils.drawing.sprites.UI;
